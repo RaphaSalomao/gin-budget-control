@@ -1,22 +1,20 @@
 package test_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
 	"github.com/RaphaSalomao/gin-budget-control/model"
+	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/model/enum"
 	"github.com/RaphaSalomao/gin-budget-control/router"
 	"github.com/RaphaSalomao/gin-budget-control/test/factory"
-	"github.com/RaphaSalomao/gin-budget-control/utils"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"
@@ -56,23 +54,11 @@ func (s *ControllerSuite) TearDownSuite() {
 func TestControllerSuite(t *testing.T) {
 	suite.Run(t, new(ControllerSuite))
 }
-func (s *ControllerSuite) TestHealthCheck_Success() {
-	resp, err := http.Get("http://localhost:5000/budget-control/api/v1/health")
-	s.Require().NoError(err)
-	defer resp.Body.Close()
-
-	expect := struct{ Online bool }{true}
-	var got struct{ Online bool }
-	json.NewDecoder(resp.Body).Decode(&got)
-
-	s.Require().Equal(http.StatusOK, resp.StatusCode)
-	s.Require().Equal(expect, got)
-}
 
 func (s *ControllerSuite) TestMonthBalanceSumary_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
@@ -83,7 +69,7 @@ func (s *ControllerSuite) TestMonthBalanceSumary_Success() {
 	}
 	r.SaveUser()
 
-	receipts := []model.Receipt{
+	receipts := []entity.Receipt{
 		{
 			Description: "Receipt 1",
 			Value:       1100,
@@ -103,7 +89,7 @@ func (s *ControllerSuite) TestMonthBalanceSumary_Success() {
 			UserId:      r.User.Id,
 		},
 	}
-	expenses := []model.Expense{
+	expenses := []entity.Expense{
 		{
 			Description: "Expense 1",
 			Value:       1100,
@@ -165,85 +151,4 @@ func (s *ControllerSuite) TestMonthBalanceSumary_Success() {
 	s.Require().Equal(totalReceipt, bs.TotalReceipt)
 	s.Require().Equal(totalExpense, bs.TotalExpense)
 	s.Require().Equal(categoryBalance, bs.CategoryBalance)
-}
-
-func (s *ControllerSuite) TestCreateUser_Success() {
-	// prepare request
-	expect := model.UserRequest{
-		Email:    "email@email.com",
-		Password: "password",
-	}
-
-	request, err := json.Marshal(expect)
-	s.Require().NoError(err)
-	requestBody := bytes.NewBuffer(request)
-
-	// do request
-	resp, err := http.Post("http://localhost:5000/budget-control/api/v1/user", "application/json", requestBody)
-
-	// assert response
-	s.Require().NoError(err)
-	s.Require().Equal(http.StatusCreated, resp.StatusCode)
-
-	var user model.User
-	s.db.Where("email = ?", expect.Email).First(&user)
-	s.Require().Equal(expect.Email, user.Email)
-	s.Require().Equal(true, utils.ValidadeHashAndPassword(strings.ToLower(expect.Password), user.Password))
-}
-
-func (s *ControllerSuite) TestAuthenticate_Success() {
-	// prepare database
-	password, err := utils.HashPassword("password")
-	s.Require().NoError(err)
-	user := model.User{
-		Email:    "email@email.com",
-		Password: password,
-	}
-	s.db.Create(&user)
-
-	// prepare request
-	userRequest := model.UserRequest{
-		Email:    "email@email.com",
-		Password: "password",
-	}
-
-	request, err := json.Marshal(userRequest)
-	s.Require().NoError(err)
-	requestBody := bytes.NewBuffer(request)
-
-	// do request
-	resp, err := http.Post("http://localhost:5000/budget-control/api/v1/authenticate", "application/json", requestBody)
-	s.Require().NoError(err)
-
-	var tokenResponse struct{ Token string }
-	json.NewDecoder(resp.Body).Decode(&tokenResponse)
-	userId, err := utils.ParseToken(tokenResponse.Token)
-
-	// assert response
-	s.Require().NoError(err)
-	s.Require().Equal(http.StatusOK, resp.StatusCode)
-	s.Require().NoError(err)
-	s.Require().Equal(user.Id.String(), userId)
-}
-
-func (s *ControllerSuite) TestAuthenticate_Fail() {
-	// prepare request
-	userRequest := model.UserRequest{
-		Email:    "email@email.com",
-		Password: "password",
-	}
-
-	request, err := json.Marshal(userRequest)
-	s.Require().NoError(err)
-	requestBody := bytes.NewBuffer(request)
-
-	// do request
-	resp, err := http.Post("http://localhost:5000/budget-control/api/v1/authenticate", "application/json", requestBody)
-
-	var tokenResponse struct{ Token string }
-	json.NewDecoder(resp.Body).Decode(&tokenResponse)
-
-	// assert response
-	s.Require().NoError(err)
-	s.Require().Equal(http.StatusUnauthorized, resp.StatusCode)
 }

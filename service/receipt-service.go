@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
-	"github.com/RaphaSalomao/gin-budget-control/model"
+	model "github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -138,7 +138,7 @@ func (rs *receiptService) TotalReceiptValueByPeriod(year string, month string, u
 }
 
 func (rs *receiptService) shouldCheckReceiptInCurrentMonth(receiptRequest *model.ReceiptRequest, receipt *model.Receipt) bool {
-	if (receiptRequest.Date != receipt.Date) || (receiptRequest.Description != receipt.Description) {
+	if (receiptRequest.Date != receipt.Date) || !strings.EqualFold(receiptRequest.Description, receipt.Description) {
 		return true
 	} else {
 		return false

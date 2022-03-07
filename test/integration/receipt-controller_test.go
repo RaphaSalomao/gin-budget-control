@@ -12,6 +12,7 @@ import (
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
 	"github.com/RaphaSalomao/gin-budget-control/model"
+	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/router"
 	"github.com/RaphaSalomao/gin-budget-control/test/factory"
 	"github.com/golang-migrate/migrate/v4"
@@ -59,11 +60,11 @@ func TestReceiptControllerSuite(t *testing.T) {
 
 func (s *ReceiptControllerSuite) TestCreateReceipt_Success() {
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
-		Body: model.ReceiptRequest{
+		Body: entity.ReceiptRequest{
 			Description: "Salary",
 			Value:       3000,
 			Date:        "2022-01-25T00:00:00Z",
@@ -75,7 +76,7 @@ func (s *ReceiptControllerSuite) TestCreateReceipt_Success() {
 		Port:   s.port,
 	}
 	r.SaveUser()
-	expect := r.Body.(model.ReceiptRequest)
+	expect := r.Body.(entity.ReceiptRequest)
 
 	resp, err := r.DoRequest()
 	s.Require().NoError(err)
@@ -83,7 +84,7 @@ func (s *ReceiptControllerSuite) TestCreateReceipt_Success() {
 	var respBody struct{ Id uuid.UUID }
 	json.NewDecoder(resp.Body).Decode(&respBody)
 
-	var got model.Receipt
+	var got entity.Receipt
 	s.db.First(&got)
 
 	// assert
@@ -98,11 +99,11 @@ func (s *ReceiptControllerSuite) TestCreateReceipt_Success() {
 func (s *ReceiptControllerSuite) TestCreateReceiptWithSameDescriptionInTheMonth_Fail() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
-		Body: model.ReceiptRequest{
+		Body: entity.ReceiptRequest{
 			Description: "Salary",
 			Value:       3000,
 			Date:        "2022-01-25T00:00:00Z",
@@ -115,7 +116,7 @@ func (s *ReceiptControllerSuite) TestCreateReceiptWithSameDescriptionInTheMonth_
 	}
 	r.SaveUser()
 
-	receipt := model.Receipt{
+	receipt := entity.Receipt{
 		Description: "Salary",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -127,17 +128,15 @@ func (s *ReceiptControllerSuite) TestCreateReceiptWithSameDescriptionInTheMonth_
 	s.Require().NoError(err)
 
 	// get response
-	var respBody struct {
-		Error string
-		Id    uuid.UUID
-	}
+	var respBody model.ErrorResponse
 	json.NewDecoder(resp.Body).Decode(&respBody)
-	var got model.Receipt
+	var got entity.Receipt
 	s.db.First(&got, respBody.Id)
 
 	// assert
 	s.Require().Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	s.Require().Equal("receipt already created in current month", respBody.Error)
+	s.Require().Equal("Error creating receipt", respBody.Message)
 	s.Require().Equal(receipt.Id, got.Id)
 	s.Require().Equal(receipt.Description, got.Description)
 }
@@ -145,7 +144,7 @@ func (s *ReceiptControllerSuite) TestCreateReceiptWithSameDescriptionInTheMonth_
 func (s *ReceiptControllerSuite) TestFindAllReceipt_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
@@ -158,7 +157,7 @@ func (s *ReceiptControllerSuite) TestFindAllReceipt_Success() {
 
 	// do request
 	r.SaveUser()
-	receipt := model.Receipt{
+	receipt := entity.Receipt{
 		Description: "SALARY",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -169,7 +168,7 @@ func (s *ReceiptControllerSuite) TestFindAllReceipt_Success() {
 	resp, err := r.DoRequest()
 	s.Require().NoError(err)
 
-	var responseBody []model.ReceiptResponse
+	var responseBody []entity.ReceiptResponse
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	s.Require().Equal(1, len(responseBody))
@@ -183,7 +182,7 @@ func (s *ReceiptControllerSuite) TestFindAllReceipt_Success() {
 func (s *ReceiptControllerSuite) TestFindReceipt_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
@@ -193,7 +192,7 @@ func (s *ReceiptControllerSuite) TestFindReceipt_Success() {
 		Port:   s.port,
 	}
 	r.SaveUser()
-	receipt := model.Receipt{
+	receipt := entity.Receipt{
 		Description: "SALARY",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -206,7 +205,7 @@ func (s *ReceiptControllerSuite) TestFindReceipt_Success() {
 	resp, err := r.DoRequest()
 	s.Require().NoError(err)
 
-	var responseBody model.ReceiptResponse
+	var responseBody entity.ReceiptResponse
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	s.Require().Equal(receipt.Date, responseBody.Date)
@@ -219,14 +218,14 @@ func (s *ReceiptControllerSuite) TestFindReceipt_Success() {
 func (s *ReceiptControllerSuite) TestUpdateReceipt_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
 		Method: http.MethodPut,
 		Client: s.client,
 		DB:     s.db,
-		Body: model.ReceiptRequest{
+		Body: entity.ReceiptRequest{
 			Description: "SALARY",
 			Value:       3000,
 			Date:        "2022-01-20T00:00:00Z",
@@ -234,7 +233,7 @@ func (s *ReceiptControllerSuite) TestUpdateReceipt_Success() {
 		Port: s.port,
 	}
 	r.SaveUser()
-	receipt := model.Receipt{
+	receipt := entity.Receipt{
 		Description: "BONUS",
 		Value:       3000,
 		Date:        "2022-01-25T00:00:00Z",
@@ -247,34 +246,34 @@ func (s *ReceiptControllerSuite) TestUpdateReceipt_Success() {
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusNoContent, resp.StatusCode)
 
-	var got model.Receipt
+	var got entity.Receipt
 	s.db.Find(&got, receipt.Id)
 
-	s.Require().Equal(r.Body.(model.ReceiptRequest).Date, got.Date)
-	s.Require().Equal(strings.ToUpper(r.Body.(model.ReceiptRequest).Description), got.Description)
-	s.Require().Equal(r.Body.(model.ReceiptRequest).Value, got.Value)
+	s.Require().Equal(r.Body.(entity.ReceiptRequest).Date, got.Date)
+	s.Require().Equal(strings.ToUpper(r.Body.(entity.ReceiptRequest).Description), got.Description)
+	s.Require().Equal(r.Body.(entity.ReceiptRequest).Value, got.Value)
 }
 
 func (s *ReceiptControllerSuite) TestUpdateReceiptWithSameDescriptionInTheMonth_Fail() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
 		Method: http.MethodPut,
 		Client: s.client,
 		DB:     s.db,
-		Body: model.ReceiptRequest{
+		Body: entity.ReceiptRequest{
 			Description: "New Description",
 			Value:       3100,
 			Date:        "2022-01-22T00:00:00Z",
 		},
-		Port:  s.port,
+		Port: s.port,
 	}
 	r.SaveUser()
 
-	receipt := model.Receipt{
+	receipt := entity.Receipt{
 		Description: "SALARY",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -282,7 +281,7 @@ func (s *ReceiptControllerSuite) TestUpdateReceiptWithSameDescriptionInTheMonth_
 	}
 	s.db.Create(&receipt)
 
-	inMonthReceipt := model.Receipt{
+	inMonthReceipt := entity.Receipt{
 		Description: "New Description",
 		Value:       5000,
 		Date:        "2022-01-15T00:00:00Z",
@@ -296,37 +295,35 @@ func (s *ReceiptControllerSuite) TestUpdateReceiptWithSameDescriptionInTheMonth_
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 
-	var responseBody struct {
-		Error string
-		Id    uuid.UUID
-	}
+	var responseBody model.ErrorResponse
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	s.Require().Equal(inMonthReceipt.Id, responseBody.Id)
 	s.Require().Equal(fmt.Sprintf("receipt %s already created in current month", inMonthReceipt.Description), responseBody.Error)
 
-	var got model.Receipt
+	var got entity.Receipt
 	s.db.Find(&got, receipt.Id)
 
-	s.Require().NotEqual(r.Body.(model.ReceiptRequest).Date, got.Date)
-	s.Require().NotEqual(strings.ToUpper(r.Body.(model.ReceiptRequest).Description), got.Description)
-	s.Require().NotEqual(r.Body.(model.ReceiptRequest).Value, got.Value)
+	s.Require().NotEqual(r.Body.(entity.ReceiptRequest).Date, got.Date)
+	s.Require().NotEqual(strings.ToUpper(r.Body.(entity.ReceiptRequest).Description), got.Description)
+	s.Require().NotEqual(r.Body.(entity.ReceiptRequest).Value, got.Value)
+	s.Require().Equal("Error updating receipt", responseBody.Message)
 }
 
 func (s *ReceiptControllerSuite) TestDeleteReceipt_Sucess() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
 		Method: http.MethodDelete,
 		Client: s.client,
 		DB:     s.db,
-		Port:  s.port,
+		Port:   s.port,
 	}
 	r.SaveUser()
-	receipt := model.Receipt{
+	receipt := entity.Receipt{
 		Description: "SALARY",
 		Value:       1000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -343,25 +340,25 @@ func (s *ReceiptControllerSuite) TestDeleteReceipt_Sucess() {
 
 	s.Require().Equal(http.StatusNoContent, resp.StatusCode)
 
-	tx := s.db.First(&model.Receipt{}, receipt.Id)
+	tx := s.db.First(&entity.Receipt{}, receipt.Id)
 	s.Require().Equal(tx.Error, gorm.ErrRecordNotFound)
 }
 
 func (s *ReceiptControllerSuite) TestReceiptsByPeriod_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
 		Method: http.MethodGet,
 		Client: s.client,
 		DB:     s.db,
-		Port:  s.port,
+		Port:   s.port,
 	}
 	r.SaveUser()
 
-	s.db.Create(&[]model.Receipt{
+	s.db.Create(&[]entity.Receipt{
 		{
 			Description: "DESC1",
 			Value:       1000,
@@ -390,11 +387,11 @@ func (s *ReceiptControllerSuite) TestReceiptsByPeriod_Success() {
 
 	// prepare request
 	year, month := "2022", "01"
-	r.Path = fmt.Sprintf("/budget-control/api/v1/receipt/%s/%s", year, month)
+	r.Path = fmt.Sprintf("/budget-control/api/v1/receipt/period/%s/%s", year, month)
 	resp, err := r.DoRequest()
 	s.Require().NoError(err)
 
-	var responseBody []model.Receipt
+	var responseBody []entity.Receipt
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	s.Require().Equal(http.StatusOK, resp.StatusCode)

@@ -1,91 +1,62 @@
 package router
 
 import (
-	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/RaphaSalomao/gin-budget-control/controller"
 	_ "github.com/RaphaSalomao/gin-budget-control/docs"
-	"github.com/RaphaSalomao/gin-budget-control/model/types"
-	"github.com/RaphaSalomao/gin-budget-control/utils"
-	"github.com/gorilla/mux"
-
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func HandleRequests() {
 	srvPort := fmt.Sprintf(":%s", os.Getenv("SRV_PORT"))
-	host := os.Getenv("SRV_HOST")
+	// host := os.Getenv("SRV_HOST")
 
-	router := mux.NewRouter()
-	router.Use(middleware)
+	router := gin.Default()
 
-	router.HandleFunc("/budget-control/api/v1/health", controller.Health).Methods("GET")
-	router.HandleFunc("/budget-control/api/v1/user", controller.CreateUser).Methods("POST")
-	router.HandleFunc("/budget-control/api/v1/authenticate", controller.Authenticate).Methods("POST")
+	unauthorized := router.Group("/budget-control/api/v1")
+	{
+		unauthorized.POST("/user", controller.CreateUser)
+		unauthorized.POST("/user/authenticate", controller.Authenticate)
+		unauthorized.GET("/health", controller.Health)
+		unauthorized.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	}
 
-	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL(fmt.Sprintf("%s/swagger/doc.json", host)), //The url pointing to API definition
-		httpSwagger.DeepLinking(true),
-		httpSwagger.DocExpansion("none"),
-		httpSwagger.DomID("#swagger-ui"),
-	))
-	router.HandleFunc("/budget-control/api/v1/receipt", controller.CreateReceipt).Methods("POST")
-	router.HandleFunc("/budget-control/api/v1/receipt", controller.FindAllReceipts).Methods("GET")
-	router.HandleFunc("/budget-control/api/v1/receipt/{id}", controller.FindReceipt).Methods("GET")
-	router.HandleFunc("/budget-control/api/v1/receipt/{id}", controller.UpdateReceipt).Methods("PUT")
-	router.HandleFunc("/budget-control/api/v1/receipt/{id}", controller.DeleteReceipt).Methods("DELETE")
-	router.HandleFunc("/budget-control/api/v1/receipt/{year}/{month}", controller.ReceiptsByPeriod).Methods("GET")
+	receipt := router.Group("/budget-control/api/v1/receipt", authMiddleware())
+	{
+		receipt.POST("", controller.CreateReceipt)
+		receipt.GET("", controller.FindAllReceipts)
+		receipt.GET("/:id", controller.FindReceipt)
+		receipt.PUT("/:id", controller.UpdateReceipt)
+		receipt.DELETE("/:id", controller.DeleteReceipt)
+		receipt.GET("/period/:year/:month", controller.ReceiptsByPeriod)
+	}
 
-	router.HandleFunc("/budget-control/api/v1/expense", controller.CreateExpense).Methods("POST")
-	router.HandleFunc("/budget-control/api/v1/expense", controller.FindAllExpenses).Methods("GET")
-	router.HandleFunc("/budget-control/api/v1/expense/{id}", controller.FindExpense).Methods("GET")
-	router.HandleFunc("/budget-control/api/v1/expense/{id}", controller.UpdateExpense).Methods("PUT")
-	router.HandleFunc("/budget-control/api/v1/expense/{id}", controller.DeleteExpense).Methods("DELETE")
-	router.HandleFunc("/budget-control/api/v1/expense/{year}/{month}", controller.ExpensesByPeriod).Methods("GET")
+	expense := router.Group("/budget-control/api/v1/expense", authMiddleware())
+	{
+		expense.POST("", controller.CreateExpense)
+		expense.GET("", controller.FindAllExpenses)
+		expense.GET("/:id", controller.FindExpense)
+		expense.PUT("/:id", controller.UpdateExpense)
+		expense.DELETE("/:id", controller.DeleteExpense)
+		expense.GET("/period/:year/:month", controller.ExpensesByPeriod)
+	}
 
-	router.HandleFunc("/budget-control/api/v1/summary/{year}/{month}", controller.MonthBalanceSumary).Methods("GET")
+	summary := router.Group("/budget-control/api/v1/summary", authMiddleware())
+	{
+		summary.GET("/:year/:month", controller.MonthBalanceSumary)
+	}
 
-	go http.ListenAndServe(srvPort, router)
+	go router.Run(srvPort)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	fmt.Println("Server is running")
 	<-quit
-
-	fmt.Println("Server down.")
-}
-
-func middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Add("Content-Type", "application/json")
-			w.Header().Add("Access-Control-Allow-Origin", "*")
-			var userId string
-			var err error
-			if utils.NeedAuthentication(r.URL.Path) {
-				token := strings.Split(r.Header.Get("Authorization"), " ")
-				if len(token) == 1 && token[0] == "" {
-					utils.HandleResponse(w, http.StatusBadRequest, struct{ Error string }{Error: "missing token"})
-					return
-				} else if token[0] != "Bearer" || len(token) != 2 {
-					utils.HandleResponse(w, http.StatusBadRequest, struct{ Error string }{Error: "invalid token"})
-					return
-				}
-				userId, err = utils.ParseToken(token[1])
-				if err != nil {
-					utils.HandleResponse(w, http.StatusUnauthorized, struct{ Error string }{Error: err.Error()})
-					return
-				}
-			}
-			r = r.WithContext(context.WithValue(r.Context(), types.ContextKey("userId"), userId))
-			next.ServeHTTP(w, r)
-		},
-	)
 }

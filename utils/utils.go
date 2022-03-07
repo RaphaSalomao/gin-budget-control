@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,8 +9,7 @@ import (
 	"time"
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
-	"github.com/RaphaSalomao/gin-budget-control/model"
-	"github.com/RaphaSalomao/gin-budget-control/model/types"
+	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -97,7 +95,7 @@ func ParseToken(tokenString string) (string, error) {
 
 func KeyFunc(t *jwt.Token) (interface{}, error) {
 	id := t.Claims.(jwt.MapClaims)["id"]
-	var user model.User
+	var user entity.User
 	tx := database.DB.First(&user, uuid.MustParse(id.(string)))
 	if tx.Error != nil {
 		if tx.Error == gorm.ErrRecordNotFound {
@@ -107,10 +105,6 @@ func KeyFunc(t *jwt.Token) (interface{}, error) {
 		}
 	}
 	return []byte(key), nil
-}
-
-func UserIdFromContext(ctx context.Context) uuid.UUID {
-	return uuid.MustParse(ctx.Value(types.ContextKey("userId")).(string))
 }
 
 func NeedAuthentication(path string) bool {

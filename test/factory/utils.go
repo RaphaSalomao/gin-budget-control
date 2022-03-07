@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/RaphaSalomao/gin-budget-control/model"
+	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/utils"
 	"gorm.io/gorm"
 )
@@ -15,7 +15,7 @@ type Request struct {
 	Method string
 	Path   string
 	Body   interface{}
-	User   model.User
+	User   entity.User
 	DB     *gorm.DB
 	Client http.Client
 	Port   string
