@@ -3,38 +3,11 @@
     "info": {
         "title": "Alura Backend Challenge 2nd Edition API",
         "contact": {},
-        "version": "1.0.1"
+        "version": "1.1.1"
     },
     "host": "alurachallengebackend2ndedition-env.eba-cmaxmrtx.us-east-2.elasticbeanstalk.com",
     "basePath": "/",
     "paths": {
-        "/budget-control/api/v1/authenticate": {
-            "post": {
-                "description": "authenticate user",
-                "tags": [
-                    "User"
-                ],
-                "parameters": [
-                    {
-                        "description": "User",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.UserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "token",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/budget-control/api/v1/balance/{year}/{month}": {
             "get": {
                 "description": "get month balance sumary",
@@ -80,7 +53,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ExpenseResponse"
+                                "$ref": "#/definitions/entity.ExpenseResponse"
                             }
                         }
                     }
@@ -99,7 +72,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ExpenseRequest"
+                            "$ref": "#/definitions/entity.ExpenseRequest"
                         }
                     }
                 ],
@@ -133,7 +106,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ExpenseResponse"
+                            "$ref": "#/definitions/entity.ExpenseResponse"
                         }
                     }
                 }
@@ -158,7 +131,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ExpenseRequest"
+                            "$ref": "#/definitions/entity.ExpenseRequest"
                         }
                     }
                 ],
@@ -219,7 +192,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ExpenseResponse"
+                                "$ref": "#/definitions/entity.ExpenseResponse"
                             }
                         }
                     }
@@ -255,7 +228,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ReceiptResponse"
+                                "$ref": "#/definitions/entity.ReceiptResponse"
                             }
                         }
                     }
@@ -274,7 +247,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ReceiptRequest"
+                            "$ref": "#/definitions/entity.ReceiptRequest"
                         }
                     }
                 ],
@@ -283,6 +256,42 @@
                         "description": "Created",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/budget-control/api/v1/receipt/period/{year}/{month}": {
+            "get": {
+                "description": "Find all receipts by Period",
+                "tags": [
+                    "Receipts"
+                ],
+                "summary": "Find all receipts by Period",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Year",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Month",
+                        "name": "month",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.ReceiptResponse"
+                            }
                         }
                     }
                 }
@@ -308,7 +317,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ReceiptResponse"
+                            "$ref": "#/definitions/entity.ReceiptResponse"
                         }
                     }
                 }
@@ -333,7 +342,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ReceiptRequest"
+                            "$ref": "#/definitions/entity.ReceiptRequest"
                         }
                     }
                 ],
@@ -368,42 +377,6 @@
                 }
             }
         },
-        "/budget-control/api/v1/receipt/{year}/{month}": {
-            "get": {
-                "description": "Find all receipts by Period",
-                "tags": [
-                    "Receipts"
-                ],
-                "summary": "Find all receipts by Period",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Year",
-                        "name": "year",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Month",
-                        "name": "month",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.ReceiptResponse"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/budget-control/api/v1/user": {
             "post": {
                 "description": "create a new user",
@@ -417,7 +390,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.UserRequest"
+                            "$ref": "#/definitions/entity.UserRequest"
                         }
                     }
                 ],
@@ -425,7 +398,34 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.UserRequest"
+                            "$ref": "#/definitions/entity.UserRequest"
+                        }
+                    }
+                }
+            }
+        },
+        "/budget-control/api/v1/user/authenticate": {
+            "post": {
+                "description": "authenticate user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "description": "User",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "token",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -433,6 +433,95 @@
         }
     },
     "definitions": {
+        "entity.ExpenseRequest": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.ExpenseResponse": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.ReceiptRequest": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.ReceiptResponse": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.UserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "model.BalanceSumaryResponse": {
             "type": "object",
             "properties": {
@@ -450,91 +539,6 @@
                 },
                 "totalReceipt": {
                     "type": "number"
-                }
-            }
-        },
-        "model.ExpenseRequest": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.ExpenseResponse": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.ReceiptRequest": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.ReceiptResponse": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.UserRequest": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
                 }
             }
         }

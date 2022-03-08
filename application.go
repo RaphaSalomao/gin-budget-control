@@ -10,7 +10,7 @@ import (
 )
 
 // @title     Alura Backend Challenge 2nd Edition API
-// @version   1.0.1
+// @version   1.2.1
 // @host      alurachallengebackend2ndedition-env.eba-cmaxmrtx.us-east-2.elasticbeanstalk.com
 // @BasePath  /
 func main() {
@@ -23,6 +23,4 @@ func main() {
 		panic(err)
 	}
 	router.HandleRequests()
-
-	fmt.Println("Exiting...")
 }

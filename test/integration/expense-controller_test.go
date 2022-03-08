@@ -12,6 +12,7 @@ import (
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
 	"github.com/RaphaSalomao/gin-budget-control/model"
+	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/model/enum"
 	"github.com/RaphaSalomao/gin-budget-control/router"
 	"github.com/RaphaSalomao/gin-budget-control/test/factory"
@@ -27,7 +28,7 @@ type ExpenseControllerSuite struct {
 	db     *gorm.DB
 	m      *migrate.Migrate
 	client http.Client
-	port  string
+	port   string
 }
 
 func (s *ExpenseControllerSuite) SetupSuite() {
@@ -61,11 +62,11 @@ func TestExpenseControllerSuite(t *testing.T) {
 func (s *ExpenseControllerSuite) TestCreateExpense_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
-		Body: model.ExpenseRequest{
+		Body: entity.ExpenseRequest{
 			Description: "Taxes",
 			Value:       3000,
 			Date:        "2022-01-25T00:00:00Z",
@@ -79,7 +80,7 @@ func (s *ExpenseControllerSuite) TestCreateExpense_Success() {
 	}
 	r.SaveUser()
 	// create request
-	expect := r.Body.(model.ExpenseRequest)
+	expect := r.Body.(entity.ExpenseRequest)
 
 	// do request
 	resp, err := r.DoRequest()
@@ -88,7 +89,7 @@ func (s *ExpenseControllerSuite) TestCreateExpense_Success() {
 	// get response
 	var respBody struct{ Id uuid.UUID }
 	json.NewDecoder(resp.Body).Decode(&respBody)
-	var got model.Expense
+	var got entity.Expense
 	s.db.First(&got)
 
 	// assert
@@ -103,11 +104,11 @@ func (s *ExpenseControllerSuite) TestCreateExpense_Success() {
 func (s *ExpenseControllerSuite) TestCreateExpenseWithoutCategory_Success() {
 	// preapare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
-		Body: model.ExpenseRequest{
+		Body: entity.ExpenseRequest{
 			Description: "Taxes",
 			Value:       3000,
 			Date:        "2022-01-25T00:00:00Z",
@@ -116,11 +117,11 @@ func (s *ExpenseControllerSuite) TestCreateExpenseWithoutCategory_Success() {
 		Method: http.MethodPost,
 		DB:     s.db,
 		Client: s.client,
-		Port:  s.port,
+		Port:   s.port,
 	}
 	r.SaveUser()
 	// create request
-	expect := r.Body.(model.ExpenseRequest)
+	expect := r.Body.(entity.ExpenseRequest)
 	// do request
 	resp, err := r.DoRequest()
 	s.Require().NoError(err)
@@ -128,7 +129,7 @@ func (s *ExpenseControllerSuite) TestCreateExpenseWithoutCategory_Success() {
 	// get response
 	var respBody struct{ Id uuid.UUID }
 	json.NewDecoder(resp.Body).Decode(&respBody)
-	var got model.Expense
+	var got entity.Expense
 	s.db.First(&got)
 
 	// assert
@@ -143,11 +144,11 @@ func (s *ExpenseControllerSuite) TestCreateExpenseWithoutCategory_Success() {
 func (s *ExpenseControllerSuite) TestCreateExpensetWithSameDescriptionInTheMonth_Fail() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
-		Body: model.ExpenseRequest{
+		Body: entity.ExpenseRequest{
 			Description: "Taxes",
 			Value:       3000,
 			Date:        "2022-01-25T00:00:00Z",
@@ -159,7 +160,7 @@ func (s *ExpenseControllerSuite) TestCreateExpensetWithSameDescriptionInTheMonth
 		Port:   s.port,
 	}
 	r.SaveUser()
-	expense := model.Expense{
+	expense := entity.Expense{
 		Description: "Taxes",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -172,17 +173,15 @@ func (s *ExpenseControllerSuite) TestCreateExpensetWithSameDescriptionInTheMonth
 	s.Require().NoError(err)
 
 	// get response
-	var respBody struct {
-		Error string
-		Id    uuid.UUID
-	}
+	var respBody model.ErrorResponse
 	json.NewDecoder(resp.Body).Decode(&respBody)
-	var got model.Expense
+	var got entity.Expense
 	s.db.First(&got, respBody.Id)
 
 	// assert
 	s.Require().Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	s.Require().Equal("expense already created in current month", respBody.Error)
+	s.Require().Equal("Error creating expense", respBody.Message)
 	s.Require().Equal(expense.Id, got.Id)
 	s.Require().Equal(expense.Description, got.Description)
 }
@@ -190,7 +189,7 @@ func (s *ExpenseControllerSuite) TestCreateExpensetWithSameDescriptionInTheMonth
 func (s *ExpenseControllerSuite) TestFindAllExpense_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
@@ -201,7 +200,7 @@ func (s *ExpenseControllerSuite) TestFindAllExpense_Success() {
 		Port:   s.port,
 	}
 	r.SaveUser()
-	expense := model.Expense{
+	expense := entity.Expense{
 		Description: "Taxes",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -213,7 +212,7 @@ func (s *ExpenseControllerSuite) TestFindAllExpense_Success() {
 	resp, err := r.DoRequest()
 	s.Require().NoError(err)
 
-	var responseBody []model.ExpenseResponse
+	var responseBody []entity.ExpenseResponse
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	s.Require().Equal(1, len(responseBody))
@@ -228,7 +227,7 @@ func (s *ExpenseControllerSuite) TestFindAllExpense_Success() {
 func (s *ExpenseControllerSuite) TestFindExpense_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
@@ -238,7 +237,7 @@ func (s *ExpenseControllerSuite) TestFindExpense_Success() {
 		Port:   s.port,
 	}
 	r.SaveUser()
-	expense := model.Expense{
+	expense := entity.Expense{
 		Description: "Taxes",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -254,7 +253,7 @@ func (s *ExpenseControllerSuite) TestFindExpense_Success() {
 	}
 	s.Require().NoError(err)
 
-	var responseBody model.ExpenseResponse
+	var responseBody entity.ExpenseResponse
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	s.Require().Equal(expense.Date, responseBody.Date)
@@ -268,11 +267,11 @@ func (s *ExpenseControllerSuite) TestFindExpense_Success() {
 func (s *ExpenseControllerSuite) TestUpdateExpense_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
-		Body: model.ExpenseRequest{
+		Body: entity.ExpenseRequest{
 			Description: "Food",
 			Value:       1000,
 			Date:        "2022-01-01T00:00:00Z",
@@ -285,9 +284,9 @@ func (s *ExpenseControllerSuite) TestUpdateExpense_Success() {
 	}
 	r.SaveUser()
 
-	expect := r.Body.(model.ExpenseRequest)
+	expect := r.Body.(entity.ExpenseRequest)
 
-	expense := model.Expense{
+	expense := entity.Expense{
 		Description: "Taxes",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -301,7 +300,7 @@ func (s *ExpenseControllerSuite) TestUpdateExpense_Success() {
 	s.Require().NoError(err)
 	s.Require().Equal(resp.StatusCode, http.StatusNoContent)
 
-	var got model.Expense
+	var got entity.Expense
 	s.db.Find(&got, expense.Id)
 
 	s.Require().Equal(expect.Date, got.Date)
@@ -313,11 +312,11 @@ func (s *ExpenseControllerSuite) TestUpdateExpense_Success() {
 func (s *ExpenseControllerSuite) TestUpdateExpenseWithSameDescriptionInTheMonth_Fail() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
-		Body: model.ExpenseRequest{
+		Body: entity.ExpenseRequest{
 			Description: "New Description",
 			Value:       1000,
 			Date:        "2022-01-01T00:00:00Z",
@@ -329,7 +328,7 @@ func (s *ExpenseControllerSuite) TestUpdateExpenseWithSameDescriptionInTheMonth_
 	}
 	r.SaveUser()
 
-	expense := model.Expense{
+	expense := entity.Expense{
 		Description: "Taxes",
 		Value:       3000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -337,7 +336,7 @@ func (s *ExpenseControllerSuite) TestUpdateExpenseWithSameDescriptionInTheMonth_
 	}
 	s.db.Create(&expense)
 
-	inMonthExpense := model.Expense{
+	inMonthExpense := entity.Expense{
 		Description: "New Description",
 		Value:       5000,
 		Date:        "2022-01-15T00:00:00Z",
@@ -345,7 +344,7 @@ func (s *ExpenseControllerSuite) TestUpdateExpenseWithSameDescriptionInTheMonth_
 	}
 	s.db.Create(&inMonthExpense)
 	// prepare request
-	newExpense := model.ExpenseRequest{
+	newExpense := entity.ExpenseRequest{
 		Description: "NEW DESCRIPTION",
 		Value:       1000,
 		Date:        "2022-01-01T00:00:00Z",
@@ -357,27 +356,25 @@ func (s *ExpenseControllerSuite) TestUpdateExpenseWithSameDescriptionInTheMonth_
 	s.Require().NoError(err)
 	s.Require().Equal(resp.StatusCode, http.StatusUnprocessableEntity)
 
-	var responseBody struct {
-		Error string
-		Id    uuid.UUID
-	}
+	var responseBody model.ErrorResponse
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	s.Require().Equal(inMonthExpense.Id, responseBody.Id)
 	s.Require().Equal(fmt.Sprintf("expense %s already created in current month", inMonthExpense.Description), responseBody.Error)
 
-	var got model.Expense
+	var got entity.Expense
 	s.db.Find(&got, expense.Id)
 
 	s.Require().NotEqual(newExpense.Date, got.Date)
 	s.Require().NotEqual(strings.ToUpper(newExpense.Description), got.Description)
+	s.Require().Equal("Error updating expense", responseBody.Message)
 	s.Require().NotEqual(newExpense.Value, got.Value)
 }
 
 func (s *ExpenseControllerSuite) TestDeleteExpense_Sucess() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
@@ -388,7 +385,7 @@ func (s *ExpenseControllerSuite) TestDeleteExpense_Sucess() {
 	}
 	r.SaveUser()
 
-	expense := model.Expense{
+	expense := entity.Expense{
 		Description: "Taxes",
 		Value:       1000,
 		Date:        "2022-01-20T00:00:00Z",
@@ -404,14 +401,14 @@ func (s *ExpenseControllerSuite) TestDeleteExpense_Sucess() {
 
 	s.Require().Equal(http.StatusNoContent, resp.StatusCode)
 
-	tx := s.db.First(&model.Expense{}, expense.Id)
+	tx := s.db.First(&entity.Expense{}, expense.Id)
 	s.Require().Equal(tx.Error, gorm.ErrRecordNotFound)
 }
 
 func (s *ExpenseControllerSuite) TestExpensesByPeriod_Success() {
 	// prepare database
 	r := factory.Request{
-		User: model.User{
+		User: entity.User{
 			Email:    "email@email.com",
 			Password: "password",
 		},
@@ -422,7 +419,7 @@ func (s *ExpenseControllerSuite) TestExpensesByPeriod_Success() {
 	}
 	r.SaveUser()
 
-	s.db.Create(&[]model.Expense{
+	s.db.Create(&[]entity.Expense{
 		{
 			Description: "DESC1",
 			Value:       1000,
@@ -451,11 +448,11 @@ func (s *ExpenseControllerSuite) TestExpensesByPeriod_Success() {
 
 	// prepare request
 	year, month := "2022", "01"
-	r.Path = fmt.Sprintf("/budget-control/api/v1/expense/%s/%s", year, month)
+	r.Path = fmt.Sprintf("/budget-control/api/v1/expense/period/%s/%s", year, month)
 	resp, err := r.DoRequest()
 	s.Require().NoError(err)
 
-	var responseBody []model.Expense
+	var responseBody []entity.Expense
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
 	s.Require().Equal(2, len(responseBody))

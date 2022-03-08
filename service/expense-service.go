@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
-	"github.com/RaphaSalomao/gin-budget-control/model"
+	model "github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/model/enum"
 	"github.com/RaphaSalomao/gin-budget-control/utils"
 	"github.com/google/uuid"
@@ -145,7 +145,7 @@ func (es *expenseService) TotalExpenseValueByPeriod(year string, month string, u
 }
 
 func (es *expenseService) shouldCheckExpenseInCurrentMonth(expenseRequest *model.ExpenseRequest, expense *model.Expense) bool {
-	if expenseRequest.Date != expense.Date && expenseRequest.Description != expense.Description {
+	if expenseRequest.Date != expense.Date || !strings.EqualFold(expenseRequest.Description, expense.Description) {
 		return true
 	} else {
 		return false

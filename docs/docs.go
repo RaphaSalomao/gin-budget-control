@@ -16,33 +16,6 @@ const docTemplate_swagger = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/budget-control/api/v1/authenticate": {
-            "post": {
-                "description": "authenticate user",
-                "tags": [
-                    "User"
-                ],
-                "parameters": [
-                    {
-                        "description": "User",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.UserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "token",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/budget-control/api/v1/balance/{year}/{month}": {
             "get": {
                 "description": "get month balance sumary",
@@ -88,7 +61,7 @@ const docTemplate_swagger = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ExpenseResponse"
+                                "$ref": "#/definitions/entity.ExpenseResponse"
                             }
                         }
                     }
@@ -107,7 +80,7 @@ const docTemplate_swagger = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ExpenseRequest"
+                            "$ref": "#/definitions/entity.ExpenseRequest"
                         }
                     }
                 ],
@@ -141,7 +114,7 @@ const docTemplate_swagger = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ExpenseResponse"
+                            "$ref": "#/definitions/entity.ExpenseResponse"
                         }
                     }
                 }
@@ -166,7 +139,7 @@ const docTemplate_swagger = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ExpenseRequest"
+                            "$ref": "#/definitions/entity.ExpenseRequest"
                         }
                     }
                 ],
@@ -227,7 +200,7 @@ const docTemplate_swagger = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ExpenseResponse"
+                                "$ref": "#/definitions/entity.ExpenseResponse"
                             }
                         }
                     }
@@ -263,7 +236,7 @@ const docTemplate_swagger = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ReceiptResponse"
+                                "$ref": "#/definitions/entity.ReceiptResponse"
                             }
                         }
                     }
@@ -282,7 +255,7 @@ const docTemplate_swagger = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ReceiptRequest"
+                            "$ref": "#/definitions/entity.ReceiptRequest"
                         }
                     }
                 ],
@@ -291,6 +264,42 @@ const docTemplate_swagger = `{
                         "description": "Created",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/budget-control/api/v1/receipt/period/{year}/{month}": {
+            "get": {
+                "description": "Find all receipts by Period",
+                "tags": [
+                    "Receipts"
+                ],
+                "summary": "Find all receipts by Period",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Year",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Month",
+                        "name": "month",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.ReceiptResponse"
+                            }
                         }
                     }
                 }
@@ -316,7 +325,7 @@ const docTemplate_swagger = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.ReceiptResponse"
+                            "$ref": "#/definitions/entity.ReceiptResponse"
                         }
                     }
                 }
@@ -341,7 +350,7 @@ const docTemplate_swagger = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ReceiptRequest"
+                            "$ref": "#/definitions/entity.ReceiptRequest"
                         }
                     }
                 ],
@@ -376,42 +385,6 @@ const docTemplate_swagger = `{
                 }
             }
         },
-        "/budget-control/api/v1/receipt/{year}/{month}": {
-            "get": {
-                "description": "Find all receipts by Period",
-                "tags": [
-                    "Receipts"
-                ],
-                "summary": "Find all receipts by Period",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Year",
-                        "name": "year",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Month",
-                        "name": "month",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.ReceiptResponse"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/budget-control/api/v1/user": {
             "post": {
                 "description": "create a new user",
@@ -425,7 +398,7 @@ const docTemplate_swagger = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.UserRequest"
+                            "$ref": "#/definitions/entity.UserRequest"
                         }
                     }
                 ],
@@ -433,7 +406,34 @@ const docTemplate_swagger = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.UserRequest"
+                            "$ref": "#/definitions/entity.UserRequest"
+                        }
+                    }
+                }
+            }
+        },
+        "/budget-control/api/v1/user/authenticate": {
+            "post": {
+                "description": "authenticate user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "description": "User",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "token",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -441,6 +441,95 @@ const docTemplate_swagger = `{
         }
     },
     "definitions": {
+        "entity.ExpenseRequest": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.ExpenseResponse": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.ReceiptRequest": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.ReceiptResponse": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.UserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "model.BalanceSumaryResponse": {
             "type": "object",
             "properties": {
@@ -460,98 +549,13 @@ const docTemplate_swagger = `{
                     "type": "number"
                 }
             }
-        },
-        "model.ExpenseRequest": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.ExpenseResponse": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.ReceiptRequest": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.ReceiptResponse": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.UserRequest": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0.1",
+	Version:          "1.1.1",
 	Host:             "alurachallengebackend2ndedition-env.eba-cmaxmrtx.us-east-2.elasticbeanstalk.com",
 	BasePath:         "/",
 	Schemes:          []string{},
