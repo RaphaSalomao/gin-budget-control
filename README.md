@@ -23,11 +23,6 @@ Clone the project
 git clone git@github.com:RaphaSalomao/alura-challenge-backend.git
 ```
 
-Change the `@host` at application.go
-```Golang
-// @host      localhost
-```
-
 Run postgres docker container
 
 ```bash
@@ -39,9 +34,8 @@ Start the server
 go run application.go
 ```
 
-Access the documentation at http://localhost:5000/swagger/doc.json
+Access the documentation at http://localhost:5000/swagger/index.html
 
-To see the swagger-ui, access http://localhost:5000/swagger/index.html, insert `http://localhost:5000/swagger/doc.json` at the dialog box and click on `explore`
 ## Running Tests
 
 To run tests, run the following commands
