@@ -5,6 +5,7 @@ import (
 
 	"github.com/RaphaSalomao/gin-budget-control/model/enum"
 	"github.com/google/uuid"
+	"gopkg.in/validator.v2"
 	"gorm.io/gorm"
 )
 
@@ -46,4 +47,11 @@ func (e *Expense) BeforeSave(tx *gorm.DB) (err error) {
 	e.Base.BeforeSave(tx)
 	e.Description = strings.ToUpper(e.Description)
 	return
+}
+
+func (e *ExpenseRequest) Validate() error {
+	if err := validator.Validate(e); err != nil {
+		return err
+	}
+	return nil
 }

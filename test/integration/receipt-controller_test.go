@@ -131,7 +131,7 @@ func (s *ReceiptControllerSuite) TestCreateReceiptWithSameDescriptionInTheMonth_
 	var respBody model.ErrorResponse
 	json.NewDecoder(resp.Body).Decode(&respBody)
 	var got entity.Receipt
-	s.db.First(&got, respBody.Id)
+	s.db.First(&got, uuid.MustParse(respBody.Id))
 
 	// assert
 	s.Require().Equal(http.StatusUnprocessableEntity, resp.StatusCode)
@@ -298,7 +298,7 @@ func (s *ReceiptControllerSuite) TestUpdateReceiptWithSameDescriptionInTheMonth_
 	var responseBody model.ErrorResponse
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
-	s.Require().Equal(inMonthReceipt.Id, responseBody.Id)
+	s.Require().Equal(inMonthReceipt.Id.String(), responseBody.Id)
 	s.Require().Equal(fmt.Sprintf("receipt %s already created in current month", inMonthReceipt.Description), responseBody.Error)
 
 	var got entity.Receipt

@@ -19,17 +19,13 @@ import (
 // @Router /budget-control/api/v1/receipt [post]
 func CreateReceipt(c *gin.Context) {
 	userId := uuid.MustParse(c.GetString("userId"))
-	var receipt entity.ReceiptRequest
-	if err := c.ShouldBindJSON(&receipt); err != nil {
-		c.JSON(http.StatusBadRequest, model.ValidationErrorResponse(err))
-		return
-	}
-	id, err := service.ReceiptService.CreateReceipt(&receipt, userId)
+	receipt, _ := c.Get("body")
+	id, err := service.ReceiptService.CreateReceipt(receipt.(*entity.ReceiptRequest), userId)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
 			Message: "Error creating receipt",
-			Id:      id,
+			Id:      id.String(),
 		})
 		return
 	}
@@ -66,7 +62,7 @@ func FindReceipt(c *gin.Context) {
 		c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   err.Error(),
 			Message: "Receipt not found",
-			Id:      id,
+			Id:      id.String(),
 		})
 		return
 	}
@@ -83,18 +79,14 @@ func FindReceipt(c *gin.Context) {
 // @Router /budget-control/api/v1/receipt/{id} [put]
 func UpdateReceipt(c *gin.Context) {
 	userId := uuid.MustParse(c.GetString("userId"))
-	var receipt entity.ReceiptRequest
+	receipt, _ := c.Get("body")
 	id := uuid.MustParse(c.Param("id"))
-	if err := c.ShouldBindJSON(&receipt); err != nil {
-		c.JSON(http.StatusBadRequest, model.ValidationErrorResponse(err))
-		return
-	}
-	id, err := service.ReceiptService.UpdateReceipt(&receipt, id, userId)
+	id, err := service.ReceiptService.UpdateReceipt(receipt.(*entity.ReceiptRequest), id, userId)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
 			Message: "Error updating receipt",
-			Id:      id,
+			Id:      id.String(),
 		})
 		return
 	}

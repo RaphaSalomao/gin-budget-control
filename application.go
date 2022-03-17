@@ -10,8 +10,8 @@ import (
 )
 
 // @title     Alura Backend Challenge 2nd Edition API
-// @version   1.2.1
-// @host      alurachallengebackend2ndedition-env.eba-cmaxmrtx.us-east-2.elasticbeanstalk.com
+// @version   1.3.1
+// @host      localhost:5000
 // @BasePath  /
 func main() {
 	err := godotenv.Load()

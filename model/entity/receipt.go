@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"gopkg.in/validator.v2"
 	"gorm.io/gorm"
 )
 
@@ -39,4 +40,11 @@ func (r *Receipt) BeforeSave(tx *gorm.DB) (err error) {
 	r.Base.BeforeSave(tx)
 	r.Description = strings.ToUpper(r.Description)
 	return
+}
+
+func (r *ReceiptRequest) Validate() error {
+	if err := validator.Validate(r); err != nil {
+		return err
+	}
+	return nil
 }
