@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/RaphaSalomao/gin-budget-control/model"
@@ -17,13 +16,8 @@ import (
 // @Success 201 {object} entity.UserRequest
 // @Router /budget-control/api/v1/user [post]
 func CreateUser(c *gin.Context) {
-	var user entity.UserRequest
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, model.ValidationErrorResponse(err))
-		fmt.Println(err)
-		return
-	}
-	if err := service.UserService.CreateUser(&user); err != nil {
+	user, _ := c.Get("body")
+	if err := service.UserService.CreateUser(user.(*entity.UserRequest)); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
 			Message: "Unable to create user",
@@ -40,12 +34,8 @@ func CreateUser(c *gin.Context) {
 // @Success 201 {string} string "token"
 // @Router /budget-control/api/v1/user/authenticate [post]
 func Authenticate(c *gin.Context) {
-	var user entity.UserRequest
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, model.ValidationErrorResponse(err))
-		return
-	}
-	token, err := service.UserService.Authenticate(&user)
+	user, _ := c.Get("body")
+	token, err := service.UserService.Authenticate(user.(*entity.UserRequest))
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, model.ErrorResponse{
 			Error:   err.Error(),

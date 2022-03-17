@@ -17,13 +17,7 @@ import (
 )
 
 var (
-	key             = []byte("0sQPpmdBGjDHKXb18jNh")
-	unauthenticated = []string{
-		"/budget-control/api/v1/health",
-		"/budget-control/api/v1/user",
-		"/budget-control/api/v1/authenticate",
-		"/swagger/",
-	}
+	key = []byte("0sQPpmdBGjDHKXb18jNh")
 )
 
 func HandleResponse(w http.ResponseWriter, status int, i interface{}) {
@@ -105,16 +99,4 @@ func KeyFunc(t *jwt.Token) (interface{}, error) {
 		}
 	}
 	return []byte(key), nil
-}
-
-func NeedAuthentication(path string) bool {
-	var needAuth bool = true
-	for _, unauthenticatedPath := range unauthenticated {
-
-		if strings.Contains(path, unauthenticatedPath) {
-			needAuth = false
-			break
-		}
-	}
-	return needAuth
 }

@@ -176,7 +176,7 @@ func (s *ExpenseControllerSuite) TestCreateExpensetWithSameDescriptionInTheMonth
 	var respBody model.ErrorResponse
 	json.NewDecoder(resp.Body).Decode(&respBody)
 	var got entity.Expense
-	s.db.First(&got, respBody.Id)
+	s.db.First(&got, uuid.MustParse(respBody.Id))
 
 	// assert
 	s.Require().Equal(http.StatusUnprocessableEntity, resp.StatusCode)
@@ -359,7 +359,7 @@ func (s *ExpenseControllerSuite) TestUpdateExpenseWithSameDescriptionInTheMonth_
 	var responseBody model.ErrorResponse
 	json.NewDecoder(resp.Body).Decode(&responseBody)
 
-	s.Require().Equal(inMonthExpense.Id, responseBody.Id)
+	s.Require().Equal(inMonthExpense.Id.String(), responseBody.Id)
 	s.Require().Equal(fmt.Sprintf("expense %s already created in current month", inMonthExpense.Description), responseBody.Error)
 
 	var got entity.Expense

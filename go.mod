@@ -1,6 +1,6 @@
 module github.com/RaphaSalomao/gin-budget-control
 
-go 1.17
+go 1.18
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
@@ -64,6 +64,7 @@ require (
 	go.uber.org/atomic v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70 // indirect
 	golang.org/x/text v0.3.7 // indirect
+	gopkg.in/validator.v2 v2.0.0-20210331031555-b37d688a7fb0
 	gorm.io/driver/postgres v1.2.3 // indirect
 	gorm.io/gorm v1.22.5 // indirect
 )
