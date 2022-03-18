@@ -18,9 +18,9 @@ import (
 // @Success 201 {object} uuid.UUID
 // @Router /budget-control/api/v1/expense [post]
 func CreateExpense(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	expense, _ := c.Get("body")
-	id, err := service.ExpenseService.CreateExpense(expense.(*entity.ExpenseRequest), userId)
+	id, err := service.ExpenseService.CreateExpense(expense.(*entity.ExpenseRequest), user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
@@ -39,10 +39,10 @@ func CreateExpense(c *gin.Context) {
 // @Success 200 {array} entity.ExpenseResponse
 // @Router /budget-control/api/v1/expense [get]
 func FindAllExpenses(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	expenses := []entity.ExpenseResponse{}
 	description := c.Query("description")
-	service.ExpenseService.FindAllExpenses(&expenses, description, userId)
+	service.ExpenseService.FindAllExpenses(&expenses, description, user.(*entity.User).Id)
 	c.JSON(http.StatusOK, expenses)
 }
 
@@ -54,10 +54,10 @@ func FindAllExpenses(c *gin.Context) {
 // @Success 200 {object} entity.ExpenseResponse
 // @Router /budget-control/api/v1/expense/{id} [get]
 func FindExpense(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	var expense entity.ExpenseResponse
 	id := uuid.MustParse(c.Param("id"))
-	err := service.ExpenseService.FindExpense(&expense, id, userId)
+	err := service.ExpenseService.FindExpense(&expense, id, user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   err.Error(),
@@ -77,10 +77,10 @@ func FindExpense(c *gin.Context) {
 // @Success 204
 // @Router /budget-control/api/v1/expense/{id} [put]
 func UpdateExpense(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	expense, _ := c.Get("body")
 	id := uuid.MustParse(c.Param("id"))
-	id, err := service.ExpenseService.UpdateExpense(expense.(*entity.ExpenseRequest), id, userId)
+	id, err := service.ExpenseService.UpdateExpense(expense.(*entity.ExpenseRequest), id, user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
@@ -100,9 +100,9 @@ func UpdateExpense(c *gin.Context) {
 // @Success 204
 // @Router /budget-control/api/v1/expense/{id} [delete]
 func DeleteExpense(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	id := uuid.MustParse(c.Param("id"))
-	service.ExpenseService.DeleteExpense(id, userId)
+	service.ExpenseService.DeleteExpense(id, user.(*entity.User).Id)
 	c.JSON(http.StatusNoContent, nil)
 }
 
@@ -115,9 +115,9 @@ func DeleteExpense(c *gin.Context) {
 // @Success 200 {array} entity.ExpenseResponse
 // @Router /budget-control/api/v1/expense/period/{year}/{month} [get]
 func ExpensesByPeriod(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	var expenses []entity.ExpenseResponse
-	err := service.ExpenseService.ExpensesByPeriod(&expenses, c.Param("year"), c.Param("month"), userId)
+	err := service.ExpenseService.ExpensesByPeriod(&expenses, c.Param("year"), c.Param("month"), user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   err.Error(),

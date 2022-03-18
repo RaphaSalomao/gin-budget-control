@@ -1,31 +1,13 @@
 package utils
 
 import (
-	"encoding/json"
+	"crypto/sha256"
 	"errors"
-	"net/http"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/RaphaSalomao/gin-budget-control/database"
-	"github.com/RaphaSalomao/gin-budget-control/model/entity"
-	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
-
-var (
-	key = []byte("0sQPpmdBGjDHKXb18jNh")
-)
-
-func HandleResponse(w http.ResponseWriter, status int, i interface{}) {
-	w.WriteHeader(status)
-	if i != nil {
-		json.NewEncoder(w).Encode(&i)
-	}
-}
 
 func MonthInterval(date string) (firstDay, lastDay time.Time, err error) {
 	year, month, err := GetYearMonthFromDateString(date)
@@ -50,53 +32,11 @@ func GetYearMonthFromDateString(date string) (int, int, error) {
 	return year, month, nil
 }
 
-func HashPassword(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hash), nil
+func HashPassword(password string) string {
+	hash := sha256.Sum256([]byte(password))
+	return fmt.Sprintf("%x", hash)
 }
 
-func ValidadeHashAndPassword(password string, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
-func GenerateJWT(email string, id string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": email,
-		"id":    id,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
-	})
-	tknString, err := token.SignedString([]byte(key))
-	if err != nil {
-		return "", err
-	}
-	return tknString, nil
-}
-
-func ParseToken(tokenString string) (string, error) {
-	token, err := jwt.Parse(tokenString, KeyFunc)
-	if err != nil {
-		return "", err
-	}
-	if !token.Valid {
-		return "", errors.New("invalid token")
-	}
-	return token.Claims.(jwt.MapClaims)["id"].(string), nil
-}
-
-func KeyFunc(t *jwt.Token) (interface{}, error) {
-	id := t.Claims.(jwt.MapClaims)["id"]
-	var user entity.User
-	tx := database.DB.First(&user, uuid.MustParse(id.(string)))
-	if tx.Error != nil {
-		if tx.Error == gorm.ErrRecordNotFound {
-			return nil, errors.New("invalid token")
-		} else {
-			return nil, tx.Error
-		}
-	}
-	return []byte(key), nil
+func ValidadePasswordHash(password string, hash string) bool {
+	return HashPassword(password) == hash
 }

@@ -12,7 +12,7 @@ run:
 	go run application.go
 
 run-test:
-	go test ./test/... -v
+	go test ./test/...
 
 generate-deploy-package:
 	./swag init -g application.go 

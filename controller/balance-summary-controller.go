@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/RaphaSalomao/gin-budget-control/model"
+	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // Month Balance Sumary
@@ -17,10 +17,9 @@ import (
 // @Success 200 {object} model.BalanceSumaryResponse
 // @Router /budget-control/api/v1/summary/{year}/{month} [get]
 func MonthBalanceSumary(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
-
+	user, _ := c.Get("user")
 	var balanceSumary model.BalanceSumaryResponse
-	err := service.BalanceSumary(&balanceSumary, c.Param("year"), c.Param("month"), userId)
+	err := service.BalanceSumary(&balanceSumary, c.Param("year"), c.Param("month"), user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),

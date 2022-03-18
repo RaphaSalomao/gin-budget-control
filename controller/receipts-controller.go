@@ -18,9 +18,9 @@ import (
 // @Success 201 {object} uuid.UUID
 // @Router /budget-control/api/v1/receipt [post]
 func CreateReceipt(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	receipt, _ := c.Get("body")
-	id, err := service.ReceiptService.CreateReceipt(receipt.(*entity.ReceiptRequest), userId)
+	id, err := service.ReceiptService.CreateReceipt(receipt.(*entity.ReceiptRequest), user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
@@ -39,10 +39,10 @@ func CreateReceipt(c *gin.Context) {
 // @Success 200 {array} entity.ReceiptResponse
 // @Router /budget-control/api/v1/receipt [get]
 func FindAllReceipts(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	receipts := []entity.ReceiptResponse{}
 	description := c.Query("description")
-	service.ReceiptService.FindAllReceipts(&receipts, description, userId)
+	service.ReceiptService.FindAllReceipts(&receipts, description, user.(*entity.User).Id)
 	c.JSON(http.StatusOK, receipts)
 }
 
@@ -54,10 +54,10 @@ func FindAllReceipts(c *gin.Context) {
 // @Success 200 {object} entity.ReceiptResponse
 // @Router /budget-control/api/v1/receipt/{id} [get]
 func FindReceipt(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	var receipt entity.ReceiptResponse
 	id := uuid.MustParse(c.Param("id"))
-	err := service.ReceiptService.FindReceipt(&receipt, id, userId)
+	err := service.ReceiptService.FindReceipt(&receipt, id, user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   err.Error(),
@@ -78,10 +78,10 @@ func FindReceipt(c *gin.Context) {
 // @Success 200 {object} uuid.UUID
 // @Router /budget-control/api/v1/receipt/{id} [put]
 func UpdateReceipt(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	receipt, _ := c.Get("body")
 	id := uuid.MustParse(c.Param("id"))
-	id, err := service.ReceiptService.UpdateReceipt(receipt.(*entity.ReceiptRequest), id, userId)
+	id, err := service.ReceiptService.UpdateReceipt(receipt.(*entity.ReceiptRequest), id, user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
@@ -101,9 +101,9 @@ func UpdateReceipt(c *gin.Context) {
 // @Success 204
 // @Router /budget-control/api/v1/receipt/{id} [delete]
 func DeleteReceipt(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	id := uuid.MustParse(c.Param("id"))
-	service.ReceiptService.DeleteReceipt(id, userId)
+	service.ReceiptService.DeleteReceipt(id, user.(*entity.User).Id)
 	c.AbortWithStatus(http.StatusNoContent)
 }
 
@@ -116,9 +116,9 @@ func DeleteReceipt(c *gin.Context) {
 // @Success 200 {array} entity.ReceiptResponse
 // @Router /budget-control/api/v1/receipt/period/{year}/{month} [get]
 func ReceiptsByPeriod(c *gin.Context) {
-	userId := uuid.MustParse(c.GetString("userId"))
+	user, _ := c.Get("user")
 	var receipts []entity.ReceiptResponse
-	err := service.ReceiptService.ReceiptsByPeriod(&receipts, c.Param("year"), c.Param("month"), userId)
+	err := service.ReceiptService.ReceiptsByPeriod(&receipts, c.Param("year"), c.Param("month"), user.(*entity.User).Id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   err.Error(),

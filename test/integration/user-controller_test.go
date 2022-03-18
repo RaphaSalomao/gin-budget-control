@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
-	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/RaphaSalomao/gin-budget-control/database"
 	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/router"
+	"github.com/RaphaSalomao/gin-budget-control/security"
 	"github.com/RaphaSalomao/gin-budget-control/utils"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/joho/godotenv"
@@ -73,13 +73,12 @@ func (s *UserControllerSuite) TestCreateUser_Success() {
 	var user entity.User
 	s.db.Where("email = ?", expect.Email).First(&user)
 	s.Require().Equal(expect.Email, user.Email)
-	s.Require().Equal(true, utils.ValidadeHashAndPassword(strings.ToLower(expect.Password), user.Password))
+	s.Require().Equal(true, utils.ValidadePasswordHash(expect.Password, user.Password))
 }
 
 func (s *UserControllerSuite) TestAuthenticate_Success() {
 	// prepare database
-	password, err := utils.HashPassword("password")
-	s.Require().NoError(err)
+	password := utils.HashPassword("password")
 	user := entity.User{
 		Email:    "email@email.com",
 		Password: password,
@@ -102,13 +101,13 @@ func (s *UserControllerSuite) TestAuthenticate_Success() {
 
 	var tokenResponse struct{ Token string }
 	json.NewDecoder(resp.Body).Decode(&tokenResponse)
-	userId, err := utils.ParseToken(tokenResponse.Token)
+	loggedUser, err := security.GetLoggedUserFromToken(tokenResponse.Token)
 
 	// assert response
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	s.Require().NoError(err)
-	s.Require().Equal(user.Id.String(), userId)
+	s.Require().Equal(user.Id, loggedUser.Id)
 }
 
 func (s *UserControllerSuite) TestAuthenticate_Fail() {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/RaphaSalomao/gin-budget-control/model/entity"
-	"github.com/RaphaSalomao/gin-budget-control/utils"
+	"github.com/RaphaSalomao/gin-budget-control/security"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +22,7 @@ type Request struct {
 }
 
 func (r *Request) DoRequest() (*http.Response, error) {
-	token, err := utils.GenerateJWT(r.User.Email, r.User.Id.String())
+	token, err := security.GenerateJWT(r.User.Email)
 	if err != nil {
 		return nil, err
 	}

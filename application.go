@@ -6,6 +6,7 @@ import (
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
 	"github.com/RaphaSalomao/gin-budget-control/router"
+	"github.com/RaphaSalomao/gin-budget-control/security"
 	"github.com/joho/godotenv"
 )
 
@@ -18,6 +19,7 @@ func main() {
 	if err != nil && strings.Contains(err.Error(), "no such file or directory") {
 		fmt.Println("Error loading .env file, using default environment variables")
 	}
+	security.LoadKey()
 	err = database.Connect()
 	if err != nil {
 		panic(err)
