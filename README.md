@@ -1,11 +1,11 @@
 # Gin-Budget-Controll
 
-This project is a improvment made from 
+This project is a improvment made from my [Alura Challenge Backend](https://github.com/RaphaSalomao/alura-challenge-backend)
 ## Run Locally
 
 What you will need: Golang v1.18 or greater, Docker, Linux operating system and [Swagger](https://github.com/swaggo/swag#getting-started)
 
-Clone the project made from my [Alura Challenge Backend](https://github.com/RaphaSalomao/alura-challenge-backend)
+Clone the project
 
 ```bash
 git clone git@github.com:RaphaSalomao/alura-challenge-backend.git
