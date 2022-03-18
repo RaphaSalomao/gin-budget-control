@@ -1,23 +1,11 @@
-# Alura-Challenge-Backend-2nd-Edition
+# Gin-Budget-Controll
 
-This project is a challenge proposed by [Alura](https://www.alura.com.br/), which is the largest Brazilian platform for technology courses, where I've created a budget controll REST API using Golang.
-
-This API allows you to create, read, update and delete yours month receipts and expenses. You can also retrieve a month balance of your budget.
-
-All requests that deal with expenses and receipts need authentication, so, you need to create a user to consume those endpoints. After the authentication, every single receipt and expenses are linked to the logged user
-
-The project was built following instructions which was given along four weeks through the following trello charts:
-
-[1st week](https://trello.com/b/EdShXSLz/challenge-backend-1st-week)
-
-[2nd week](https://trello.com/b/mDOu1l92/challenge-backend-2nd-week)
-
-[3rd and 4th week](https://trello.com/b/NImixLgR/challenge-backend-3rd-week)
+This project is a improvment made from 
 ## Run Locally
 
-What you will need: Golang v1.13 or greater, Docker, Linux operating system and [Swagger](https://github.com/swaggo/swag#getting-started)
+What you will need: Golang v1.18 or greater, Docker, Linux operating system and [Swagger](https://github.com/swaggo/swag#getting-started)
 
-Clone the project
+Clone the project made from my [Alura Challenge Backend](https://github.com/RaphaSalomao/alura-challenge-backend)
 
 ```bash
 git clone git@github.com:RaphaSalomao/alura-challenge-backend.git
@@ -26,10 +14,14 @@ git clone git@github.com:RaphaSalomao/alura-challenge-backend.git
 Run postgres docker container
 
 ```bash
-docker-compose up -d
+make db-up
 ```
 
 Start the server
+```bash
+make run
+```
+If you don't have swag binary on the project root, run this instead
 ```bash
 go run application.go
 ```
@@ -42,10 +34,10 @@ To run tests, run the following commands
 
 Run postgres test database docker container 
 ```bash
-docker-compose -f docker-compose.test.yml -p alura-challenge-backend_test up -d
+make test-db-up
 ```
 
 Run tests
 ```bash
-go test ./test/... -v
+make run-test
 ```
