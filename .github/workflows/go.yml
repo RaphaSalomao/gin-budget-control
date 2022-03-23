@@ -17,7 +17,7 @@ jobs:
         go-version: 1.18
     
     - name: Setup Test Database
-      run: docker-compose -f docker-compose.test.yml -p alura-challenge-backend_test up -d
+      run: docker-compose -f docker-compose.db.test.yml -p alura-challenge-backend_test up -d
     
     - name: Test
       run: go test -v ./test/...
