@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
-	"github.com/RaphaSalomao/gin-budget-control/model/entity"
+	"github.com/RaphaSalomao/gin-budget-control/model"
 	"github.com/golang-jwt/jwt"
 	"gorm.io/gorm"
 )
@@ -35,13 +35,13 @@ func ParseToken(tokenString string) (*jwt.Token, error) {
 	return token, nil
 }
 
-func GetLoggedUserFromToken(tokenString string) (*entity.User, error) {
+func GetLoggedUserFromToken(tokenString string) (*model.User, error) {
 	token, err := ParseToken(tokenString)
 	if err != nil {
 		return nil, err
 	}
 	email := token.Claims.(jwt.MapClaims)["email"]
-	var user entity.User
+	var user model.User
 	tx := database.DB.Where("email = ?", email).First(&user)
 	if tx.Error != nil {
 		if tx.Error == gorm.ErrRecordNotFound {
@@ -55,7 +55,7 @@ func GetLoggedUserFromToken(tokenString string) (*entity.User, error) {
 
 func KeyFunc(t *jwt.Token) (interface{}, error) {
 	email := t.Claims.(jwt.MapClaims)["email"]
-	var user entity.User
+	var user model.User
 	tx := database.DB.Where("email = ?", email).First(&user)
 	if tx.Error != nil {
 		if tx.Error == gorm.ErrRecordNotFound {

@@ -13,12 +13,8 @@ import (
 
 func authMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := strings.Split(c.Request.Header.Get("Authorization"), " ")
+		token := strings.Split(c.Request.Header.Get("Authorization"), "Bearer ")
 		if len(token) != 2 {
-			utils.RespondWithError(c, http.StatusUnauthorized, "Invalid Token", true)
-			return
-		}
-		if token[0] != "Bearer" {
 			utils.RespondWithError(c, http.StatusUnauthorized, "Invalid Token", true)
 			return
 		}

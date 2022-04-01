@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func MonthInterval(date string) (firstDay, lastDay time.Time, err error) {
+func MonthIntervalFrom(date string) (firstDay, lastDay time.Time, err error) {
 	year, month, err := GetYearMonthFromDateString(date)
 	if err != nil {
 		return time.Time{}, time.Time{}, err
@@ -40,7 +40,7 @@ func HashPassword(password string) string {
 	return fmt.Sprintf("%x", hash)
 }
 
-func ValidadePasswordHash(password string, hash string) bool {
+func IsHashAndPasswordMatched(password string, hash string) bool {
 	return HashPassword(password) == hash
 }
 

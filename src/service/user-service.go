@@ -1,24 +1,19 @@
 package service
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/RaphaSalomao/gin-budget-control/database"
 	"github.com/RaphaSalomao/gin-budget-control/model"
-	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/security"
 	"github.com/RaphaSalomao/gin-budget-control/utils"
-	"gorm.io/gorm"
 )
 
 type userService struct{}
 
 var UserService = userService{}
 
-func (us *userService) CreateUser(u *entity.UserRequest) error {
+func (us *userService) CreateUser(u *model.UserRequest) error {
 	hash := utils.HashPassword(u.Password)
-	user := entity.User{
+	user := model.User{
 		Email:    u.Email,
 		Password: hash,
 	}
@@ -26,22 +21,16 @@ func (us *userService) CreateUser(u *entity.UserRequest) error {
 	return tx.Error
 }
 
-func (us *userService) Authenticate(u *entity.UserRequest) (model.TokenResponse, error) {
-	user := entity.User{}
-	tx := database.DB.Where("email = ?", u.Email).First(&user)
-	if tx.Error != nil {
-		if tx.Error == gorm.ErrRecordNotFound {
-			return model.TokenResponse{}, fmt.Errorf("user %s not found", u.Email)
-		} else {
-			return model.TokenResponse{}, tx.Error
-		}
+func (us *userService) Authenticate(u *model.UserRequest) (model.TokenResponse, error) {
+	user := model.User{}
+	if tx := database.DB.Where("email = ?", u.Email).First(&user); tx.Error != nil {
+		return model.TokenResponse{}, model.ErrNotFound
 	}
-	if utils.ValidadePasswordHash(u.Password, user.Password) {
+	if utils.IsHashAndPasswordMatched(u.Password, user.Password) {
 		token, err := security.GenerateJWT(u.Email)
 		return model.TokenResponse{
 			Token: token,
 		}, err
-	} else {
-		return model.TokenResponse{}, errors.New("invalid user/password")
 	}
+	return model.TokenResponse{}, model.ErrInvalidUserPassword
 }

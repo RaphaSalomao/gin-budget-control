@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/RaphaSalomao/gin-budget-control/model"
-	"github.com/RaphaSalomao/gin-budget-control/model/entity"
 	"github.com/RaphaSalomao/gin-budget-control/service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -14,13 +13,13 @@ import (
 // @Summary Create a new receipt
 // @Description Create a new receipt. Obs.: you cannot create two receipts with the same description in a single month.
 // @Tags Receipts
-// @Param receipt body entity.ReceiptRequest true "Receipt"
+// @Param receipt body model.ReceiptRequest true "Receipt"
 // @Success 201 {object} uuid.UUID
 // @Router /budget-control/api/v1/receipt [post]
 func CreateReceipt(c *gin.Context) {
 	user, _ := c.Get("user")
 	receipt, _ := c.Get("body")
-	id, err := service.ReceiptService.CreateReceipt(receipt.(*entity.ReceiptRequest), user.(*entity.User).Id)
+	id, err := service.ReceiptService.CreateReceipt(receipt.(*model.ReceiptRequest), user.(*model.User).Id)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
@@ -36,13 +35,13 @@ func CreateReceipt(c *gin.Context) {
 // @Summary Find all receipts
 // @Description Find all receipts
 // @Tags Receipts
-// @Success 200 {array} entity.ReceiptResponse
+// @Success 200 {array} model.ReceiptResponse
 // @Router /budget-control/api/v1/receipt [get]
 func FindAllReceipts(c *gin.Context) {
 	user, _ := c.Get("user")
-	receipts := []entity.ReceiptResponse{}
+	receipts := []model.ReceiptResponse{}
 	description := c.Query("description")
-	service.ReceiptService.FindAllReceipts(&receipts, description, user.(*entity.User).Id)
+	service.ReceiptService.FindAllReceipts(&receipts, description, user.(*model.User).Id)
 	c.JSON(http.StatusOK, receipts)
 }
 
@@ -51,13 +50,13 @@ func FindAllReceipts(c *gin.Context) {
 // @Description Find a receipt by id
 // @Tags Receipts
 // @Param id path string true "Receipt id"
-// @Success 200 {object} entity.ReceiptResponse
+// @Success 200 {object} model.ReceiptResponse
 // @Router /budget-control/api/v1/receipt/{id} [get]
 func FindReceipt(c *gin.Context) {
 	user, _ := c.Get("user")
-	var receipt entity.ReceiptResponse
+	var receipt model.ReceiptResponse
 	id := uuid.MustParse(c.Param("id"))
-	err := service.ReceiptService.FindReceipt(&receipt, id, user.(*entity.User).Id)
+	err := service.ReceiptService.FindReceipt(&receipt, id, user.(*model.User).Id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   err.Error(),
@@ -74,14 +73,14 @@ func FindReceipt(c *gin.Context) {
 // @Description Update a receipt
 // @Tags Receipts
 // @Param id path string true "Receipt id"
-// @Param receipt body entity.ReceiptRequest true "Receipt"
+// @Param receipt body model.ReceiptRequest true "Receipt"
 // @Success 200 {object} uuid.UUID
 // @Router /budget-control/api/v1/receipt/{id} [put]
 func UpdateReceipt(c *gin.Context) {
 	user, _ := c.Get("user")
 	receipt, _ := c.Get("body")
 	id := uuid.MustParse(c.Param("id"))
-	id, err := service.ReceiptService.UpdateReceipt(receipt.(*entity.ReceiptRequest), id, user.(*entity.User).Id)
+	id, err := service.ReceiptService.UpdateReceipt(receipt.(*model.ReceiptRequest), id, user.(*model.User).Id)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{
 			Error:   err.Error(),
@@ -103,7 +102,7 @@ func UpdateReceipt(c *gin.Context) {
 func DeleteReceipt(c *gin.Context) {
 	user, _ := c.Get("user")
 	id := uuid.MustParse(c.Param("id"))
-	service.ReceiptService.DeleteReceipt(id, user.(*entity.User).Id)
+	service.ReceiptService.DeleteReceipt(id, user.(*model.User).Id)
 	c.AbortWithStatus(http.StatusNoContent)
 }
 
@@ -113,12 +112,12 @@ func DeleteReceipt(c *gin.Context) {
 // @Tags Receipts
 // @Param year path int true "Year"
 // @Param month path int true "Month"
-// @Success 200 {array} entity.ReceiptResponse
+// @Success 200 {array} model.ReceiptResponse
 // @Router /budget-control/api/v1/receipt/period/{year}/{month} [get]
 func ReceiptsByPeriod(c *gin.Context) {
 	user, _ := c.Get("user")
-	var receipts []entity.ReceiptResponse
-	err := service.ReceiptService.ReceiptsByPeriod(&receipts, c.Param("year"), c.Param("month"), user.(*entity.User).Id)
+	var receipts []model.ReceiptResponse
+	err := service.ReceiptService.ReceiptsByPeriod(&receipts, c.Param("year"), c.Param("month"), user.(*model.User).Id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, model.ErrorResponse{
 			Error:   err.Error(),

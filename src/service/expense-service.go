@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/RaphaSalomao/gin-budget-control/database"
-	model "github.com/RaphaSalomao/gin-budget-control/model/entity"
+	"github.com/RaphaSalomao/gin-budget-control/model"
 	"github.com/RaphaSalomao/gin-budget-control/model/enum"
 	"github.com/RaphaSalomao/gin-budget-control/utils"
 	"github.com/google/uuid"
@@ -111,7 +111,7 @@ func (es *expenseService) DeleteExpense(id uuid.UUID, userId uuid.UUID) {
 
 func (es *expenseService) ExpensesByPeriod(e *[]model.ExpenseResponse, year string, month string, userId uuid.UUID) error {
 	var expenses []model.Expense
-	t1, t2, err := utils.MonthInterval(fmt.Sprintf("%s-%s", year, month))
+	t1, t2, err := utils.MonthIntervalFrom(fmt.Sprintf("%s-%s", year, month))
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (es *expenseService) ExpensesByPeriod(e *[]model.ExpenseResponse, year stri
 func (es *expenseService) TotalExpenseValueByPeriod(year string, month string, userId uuid.UUID) (total float64, categoriesBalance map[enum.Category]float64, err error) {
 	var expenses []model.Expense
 	categoriesBalance = map[enum.Category]float64{}
-	t1, t2, err := utils.MonthInterval(fmt.Sprintf("%s-%s", year, month))
+	t1, t2, err := utils.MonthIntervalFrom(fmt.Sprintf("%s-%s", year, month))
 	if err != nil {
 		return 0, nil, err
 	}
@@ -154,15 +154,15 @@ func (es *expenseService) shouldCheckExpenseInCurrentMonth(expenseRequest *model
 
 func (ex *expenseService) isMonthDuplicated(date string, description string, userId uuid.UUID) (bool, uuid.UUID, error) {
 	var entity model.Expense
-	t1, t2, err := utils.MonthInterval(date)
+	t1, t2, err := utils.MonthIntervalFrom(date)
 	if err != nil {
 		return false, uuid.Nil, err
 	}
-	tx := database.DB.Where("user_id = ? AND description = ? AND date between ? AND ?", userId, strings.ToUpper(description), t1, t2).First(&entity)
-	if tx.Error != nil && tx.Error == gorm.ErrRecordNotFound {
+	tx := database.DB.Where(
+		"user_id = ? AND description = ? AND date between ? AND ?", userId, strings.ToUpper(description), t1, t2,
+	).First(&entity)
+	if tx.Error != nil {
 		return false, uuid.Nil, nil
-	} else if tx.Error != nil {
-		return true, uuid.Nil, tx.Error
 	} else {
 		return true, entity.Id, nil
 	}

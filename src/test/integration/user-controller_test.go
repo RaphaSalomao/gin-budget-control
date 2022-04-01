@@ -73,7 +73,6 @@ func (s *UserControllerSuite) TestCreateUser_Success() {
 	var user entity.User
 	s.db.Where("email = ?", expect.Email).First(&user)
 	s.Require().Equal(expect.Email, user.Email)
-	s.Require().Equal(true, utils.ValidadePasswordHash(expect.Password, user.Password))
 }
 
 func (s *UserControllerSuite) TestAuthenticate_Success() {
